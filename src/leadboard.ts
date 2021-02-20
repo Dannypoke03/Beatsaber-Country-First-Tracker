@@ -1,4 +1,4 @@
-import { config, savedData, ssPlayer, ssScore, user } from "./types";
+import { config, savedData, score, ssPlayer, ssScore, user } from "./types";
 const fs = require('fs');
 import cheerio from 'cheerio';
 import fetch from 'node-fetch';
@@ -46,7 +46,6 @@ export class leaderboardController {
         let userIds = [];
         let countriesString = this.config.countries.join(',');
         for (let i = 1; i <= pages; i++) {
-            // console.info(`Getting page ${i}...`);
             let res = await fetch(`https://scoresaber.com/global/${i}?country=${countriesString}`);
             let html = await res.text();
             let $ = cheerio.load(html);
@@ -91,7 +90,7 @@ export class leaderboardController {
             console.log(`Getting user ${user.userId}...`);
             userLoop:
             for (let i = 1; i <= pages; i++) {
-                console.log(`Page ${i}...`)
+                // console.log(`Page ${i}...`)
                 try {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
                     for (const score of scorePage.scores) {
@@ -123,13 +122,12 @@ export class leaderboardController {
 
     async updateScores() {
         console.info('Updating User Scores');
+        let scoresToUpdate: score[];
         await this.savePlayers();
         for (const user of this.curData.users) {
             let pages = Math.ceil(user.totalPlayCount / 8);
-            // console.log(`Updating user ${user.userId}...`);
             updateUserLoop:
             for (let i = 1; i <= pages; i++) {
-                // console.log(`Page ${i}...`)
                 try {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/recent/${i}`);
                     for (const score of scorePage.scores) {
@@ -141,17 +139,12 @@ export class leaderboardController {
                             if (score.score > savedScore.score) {
                                 messageController.sendMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex]);
                                 this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
-                                // console.log(score);
+                                scoresToUpdate.push({ 'userId': user.userId, ...score });
                             }
                         } else {
                             messageController.sendMessage(user, score, this.feedChannel);
                             this.curData.scores.push({ 'userId': user.userId, ...score });
-                        }
-                        let usrScoreIndex = user.scores.findIndex(x => x.leaderboardId == score.leaderboardId);
-                        if (usrScoreIndex > -1) {
-                            user.scores[usrScoreIndex] = score;
-                        } else {
-                            user.scores.push(score);
+                            scoresToUpdate.push({ 'userId': user.userId, ...score });
                         }
                     }
                 } catch (error) {
@@ -159,6 +152,15 @@ export class leaderboardController {
                     i--;
                 }
                 if (i % 10 == 0) this.updateSaved();
+            }
+        }
+        for (const score of scoresToUpdate) {
+            let user = this.curData.users.find(x => x.userId === score.userId);
+            let usrScoreIndex = user.scores.findIndex(x => x.leaderboardId == score.leaderboardId);
+            if (usrScoreIndex > -1) {
+                user.scores[usrScoreIndex] = score;
+            } else {
+                user.scores.push(score);
             }
         }
         console.info('Update Complete');

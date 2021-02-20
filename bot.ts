@@ -69,6 +69,8 @@ const client = new Client();
 
 async function onReady() {
     console.info('Bot Ready');
+    leaderboard = new leaderboardController('./data.json', config, client);
+    leaderboard.init();
 }
 
 client.once('ready', onReady);
@@ -84,9 +86,8 @@ async function init() {
     await client.login(config.token || 'NO_TOKEN_PROVIDED').then(async () => {
         console.info('[Init] Connected to discord.');
     });
-    leaderboard = new leaderboardController('./data.json', config, client);
-    leaderboard.init();
 }
+
 new debugLogger();
 
 init();
