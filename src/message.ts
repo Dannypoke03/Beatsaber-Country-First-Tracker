@@ -19,8 +19,8 @@ export class messageController {
         let colour = colours[score.difficultyRaw.split("_")[1]];
         const embed = new MessageEmbed()
             .setColor(colour)
-            .setTitle(`**${user.ssData.playerName}** set a new **#1 OCE Score**`)
-            .setDescription(`[${user.ssData.playerName}'s Profile](https://scoresaber.com/u/${user.userId})`)
+            .setTitle(`**${user.ssData.playerInfo.playerName}** set a new **#1 OCE Score**`)
+            .setDescription(`[${user.ssData.playerInfo.playerName}'s Profile](https://scoresaber.com/u/${user.userId})`)
             .setThumbnail(`https://scoresaber.com/imports/images/usr-avatars/${user.userId}.jpg`)
             .addFields(
                 { name: `${score.songAuthorName} - ${score.songName}`, value: `**Rank:** #${score.rank}\n**PP:** ${score.pp.toFixed(2)}\n**Accuracy:** ${(score.score / score.maxScore * 100).toFixed(2)}%\n[Leadboard](https://scoresaber.com/leaderboard/${score.leaderboardId})` }
@@ -49,7 +49,25 @@ export class messageController {
                     .setHeading('Rank', 'Name', '#1\'s');
             }
             table
-                .addRow(`#${i + 1}`, user.user.ssData.playerName, user.count);
+                .addRow(`#${i + 1}`, user.user.ssData.playerInfo.playerName, user.count);
+        }
+        channel.send(`\`\`\`${table.toString()}\`\`\``);
+    }
+
+    static async accLeaderboardMessage(data: user[], channel) {
+        var table = new AsciiTable('Accuracy Leaderboard');
+        table
+            .setHeading('Acc Rank', 'Name', 'Acc', 'Global Rank');
+        for (let i = 0; i < data.length && i < 25; i++) {
+            const user = data[i];
+            if (table.toString().length >= 1700) {
+                channel.send(`\`\`\`${table.toString()}\`\`\``);
+                var table = new AsciiTable('Accuracy Leaderboard');
+                table
+                    .setHeading('Acc Rank', 'Name', 'Acc', 'Global Rank');
+            }
+            table
+                .addRow(`#${i + 1}`, user.ssData.playerInfo.playerName, user.ssData.scoreStats.averageRankedAccuracy, `#${user.ssData.playerInfo.rank}`);
         }
         channel.send(`\`\`\`${table.toString()}\`\`\``);
     }

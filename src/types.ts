@@ -16,8 +16,8 @@ export interface user {
     userId: string;
     oceRank?: number;
     totalPlayCount: number;
-    scores: Score[];
-    ssData: PlayerInfo;
+    latestScore?: Score;
+    ssData: ssPlayer;
 }
 
 export interface score {
