@@ -17,64 +17,33 @@ async function onMessage(message: Message) {
     // let command = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
     const args = message.content.slice(prefix.length).trim().split(' ');
     const command = args.shift().toLowerCase();
-    if (command == 'update') {
-        if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
-            message.channel.send('Updating, this may take a while');
-            await leaderboard.updateScores();
-            message.channel.send('User Update complete');
-        }
-    } else if (command == 'test') {
-        // let user: user = {
-        //     userId: "76561198118969924",
-        //     totalPlayCount: 10,
-        //     scores: [],
-        //     "ssData": {
-        //         "playerId": "76561198118969924",
-        //         "playerName": "Dannypoke03",
-        //         "avatar": "/api/static/avatars/76561198118969924.jpg",
-        //         "rank": 398,
-        //         "countryRank": 16,
-        //         "pp": 11406.2,
-        //         "country": "AU",
-        //         "role": "",
-        //         "badges": [],
-        //         "history": "295,296,297,298,300,301,301,303,305,306,306,306,308,309,309,309,311,312,313,313,313,316,320,324,330,336,338,339,341,344,347,348,351,350,356,359,361,361,361,367,369,374,379,385,388,391,393,394,396",
-        //         "permissions": 0,
-        //         "inactive": 0,
-        //         "banned": 0
-        //     }
-        // }
-        // let score: Score = {
-        //     "rank": 3784,
-        //     "scoreId": 19108282,
-        //     "score": 675637,
-        //     "unmodififiedScore": 675637,
-        //     "mods": "",
-        //     "pp": 77.9863,
-        //     "weight": 0.018495202663121,
-        //     "timeSet": new Date("2019-06-06T14:32:33.000Z"),
-        //     "leaderboardId": 84212,
-        //     "songHash": "9ADD07A1625027A42110EFC4E1EFD03D8C960FEF",
-        //     "songName": "Epic",
-        //     "songSubName": "",
-        //     "songAuthorName": "Tokyo Machine",
-        //     "levelAuthorName": "Brady",
-        //     "difficulty": 9,
-        //     "difficultyRaw": "_ExpertPlus_SoloStandard",
-        //     "maxScore": 832715
-        // }
-        // messageController.firstMessage(user, score, message.channel);
-        message.channel.send('no');
-    } else if (command == 'fl') {
-        messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
-    } else if (command == 'snipe') {
-        if (!args.length) {
-            return message.channel.send(`You didn't provide a userId, ${message.author}!`);
-        }
-        leaderboard.snipeUser(args[0], message.channel);
-    } else if (command == 'help') {
-        let string = "**Avaliable Commands**\n`~fl` -> Returns the first leaderboard\n`~snipe <userId>` -> Returns a playlist to snipe the given player";
-        message.channel.send(string);
+
+    switch (command) {
+        case 'update':
+            if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
+                message.channel.send('Updating, this may take a while');
+                await leaderboard.updateScores();
+                message.channel.send('User Update complete');
+            }
+            break;
+        case 'fl':
+            messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
+            break;
+        case 'snipe':
+            if (!args.length) {
+                return message.channel.send(`You didn't provide a userId, ${message.author}!`);
+            }
+            leaderboard.snipeUser(args[0], message.channel);
+            break;
+        case 'acc':
+            leaderboard.accleaderboard(message.channel)
+            break;
+        case 'help':
+            let string = "**Avaliable Commands**\n`~fl` -> Returns the first leaderboard\n`~snipe <userId>` -> Returns a playlist to snipe the given player\n`~acc` -> Returns the accuracy leaderboard";
+            message.channel.send(string);
+            break;
+        default:
+            break;
     }
 }
 

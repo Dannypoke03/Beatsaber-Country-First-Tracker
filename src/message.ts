@@ -55,6 +55,9 @@ export class messageController {
     }
 
     static async accLeaderboardMessage(data: user[], channel) {
+        data.sort((a, b) => {
+            return b.ssData.scoreStats.averageRankedAccuracy - a.ssData.scoreStats.averageRankedAccuracy;
+        })
         var table = new AsciiTable('Accuracy Leaderboard');
         table
             .setHeading('Acc Rank', 'Name', 'Acc', 'Global Rank');
@@ -67,7 +70,7 @@ export class messageController {
                     .setHeading('Acc Rank', 'Name', 'Acc', 'Global Rank');
             }
             table
-                .addRow(`#${i + 1}`, user.ssData.playerInfo.playerName, user.ssData.scoreStats.averageRankedAccuracy, `#${user.ssData.playerInfo.rank}`);
+                .addRow(`#${i + 1}`, user.ssData.playerInfo.playerName, user.ssData.scoreStats.averageRankedAccuracy.toFixed(2) + "%", `#${user.ssData.playerInfo.rank}`);
         }
         channel.send(`\`\`\`${table.toString()}\`\`\``);
     }

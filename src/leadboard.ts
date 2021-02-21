@@ -133,6 +133,7 @@ export class leaderboardController {
                 try {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/recent/${i}`);
                     for (const score of scorePage.scores) {
+                        scoresToUpdate.push({ 'userId': user.userId, ...score });
                         if (score.pp == 0) continue;
                         if ((new Date(score.timeSet)).getTime() <= this.getMostRecentScore(user.userId).getTime()) break updateUserLoop;
                         let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
@@ -141,12 +142,12 @@ export class leaderboardController {
                             if (score.score > savedScore.score) {
                                 messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex]);
                                 this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
-                                scoresToUpdate.push({ 'userId': user.userId, ...score });
+                                // scoresToUpdate.push({ 'userId': user.userId, ...score });
                             }
                         } else {
                             messageController.firstMessage(user, score, this.feedChannel);
                             this.curData.scores.push({ 'userId': user.userId, ...score });
-                            scoresToUpdate.push({ 'userId': user.userId, ...score });
+                            // scoresToUpdate.push({ 'userId': user.userId, ...score });
                         }
                     }
                 } catch (error) {
@@ -246,20 +247,8 @@ export class leaderboardController {
         return usersCount;
     }
 
-    async accleaderboard(): Promise<firstLeadboard[]> {
-        let usersCount: firstLeadboard[] = [];
-        for (const score of this.curData.scores) {
-            let curUser = usersCount.find(x => x.user.userId == score.userId);
-            let user = this.curData.users.find(x => x.userId == score.userId);
-            if (!user) continue;
-            if (curUser) {
-                curUser.count += 1;
-            } else {
-                usersCount.push({ user: user, count: 1 });
-            }
-        }
-        // console.log(usersCount);
-        return usersCount;
+    async accleaderboard(channel) {
+        messageController.accLeaderboardMessage(this.curData.users, channel);
     }
 
     async snipeUser(userId: string, channel) {
