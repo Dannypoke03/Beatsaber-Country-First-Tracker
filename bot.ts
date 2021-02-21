@@ -14,7 +14,9 @@ let leaderboard: leaderboardController;
 
 async function onMessage(message: Message) {
     if (!message.content.startsWith(prefix)) return;
-    let command = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
+    // let command = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
+    const args = message.content.slice(prefix.length).trim().split(' ');
+    const command = args.shift().toLowerCase();
     if (command == 'update') {
         if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
             message.channel.send('Updating, this may take a while');
@@ -61,7 +63,17 @@ async function onMessage(message: Message) {
             "difficultyRaw": "_ExpertPlus_SoloStandard",
             "maxScore": 832715
         }
-        messageController.sendMessage(user, score, message.channel);
+        messageController.firstMessage(user, score, message.channel);
+    } else if (command == 'fl') {
+        messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
+    } else if (command == 'snipe') {
+        if (!args.length) {
+            return message.channel.send(`You didn't provide a userId, ${message.author}!`);
+        }
+        leaderboard.snipeUser(args[0], message.channel);
+    } else if (command == 'help') {
+        let string = "**Avaliable Commands**\n`~fl` -> Returns the first leaderboard\n`~snipe <userId>` -> Returns a playlist to snipe the given player";
+        message.channel.send(string);
     }
 }
 

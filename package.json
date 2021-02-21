@@ -12,6 +12,7 @@
     "license": "ISC",
     "dependencies": {
         "@types/node-fetch": "^2.5.8",
+        "ascii-table": "0.0.9",
         "cheerio": "^1.0.0-rc.5",
         "discord.js": "^12.2.0",
         "node-fetch": "^2.6.1",

@@ -98,3 +98,8 @@ export interface Score {
 export interface ssScore {
     scores: Score[];
 }
+
+export interface firstLeadboard {
+    user: user;
+    count: number;
+}
