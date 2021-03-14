@@ -13,7 +13,7 @@ const colours = {
 
 export class messageController {
 
-    static async firstMessage(user: user, score: Score, channel, oldScore?: Score) {
+    static async firstMessage(user: user, score: Score, channel, oldScore?: Score, oldUser?: user): Promise<MessageEmbed> {
         // let user = curData.users.find(x => x.userId == userId);
         if (!user) return;
         let colour = colours[score.difficultyRaw.split("_")[1]];
@@ -27,9 +27,12 @@ export class messageController {
             )
             .setImage(`https://scoresaber.com/imports/images/songs/${score.songHash}.png`)
             .setTimestamp(new Date(score.timeSet));
-        if (oldScore) {
-            embed.addField('Previous Score', `**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.score / oldScore.maxScore * 100).toFixed(2)}%\n[Leadboard](https://scoresaber.com/leaderboard/${oldScore.leaderboardId})`)
+        if (oldScore && oldUser) {
+            embed.addField('Previous Score', `**Set By:** ${oldUser.ssData.playerInfo.playerName} \n**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.score / oldScore.maxScore * 100).toFixed(2)}%\n[Leadboard](https://scoresaber.com/leaderboard/${oldScore.leaderboardId})`)
+        } else if (oldScore) {
+            embed.addField('Previous Score', `**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.score / oldScore.maxScore * 100).toFixed(2)}%\n[Leaderboard](https://scoresaber.com/leaderboard/${oldScore.leaderboardId})`)
         }
+        return embed;
         channel.send(embed);
     }
 

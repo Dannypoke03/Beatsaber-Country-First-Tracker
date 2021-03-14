@@ -3,6 +3,7 @@ const fs = require('fs');
 import cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import { messageController } from "./message";
+import { MessageEmbed } from "discord.js";
 
 export class leaderboardController {
 
@@ -90,7 +91,6 @@ export class leaderboardController {
             console.log(`Getting user ${user.userId}...`);
             userLoop:
             for (let i = 1; i <= pages; i++) {
-                // console.log(`Page ${i}...`)
                 try {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
                     for (const score of scorePage.scores) {
@@ -125,6 +125,7 @@ export class leaderboardController {
     async updateScores() {
         console.info('Updating User Scores');
         let scoresToUpdate: score[] = [];
+        let messageCache: MessageEmbed[] = [];
         await this.savePlayers();
         for (const user of this.curData.users) {
             let pages = Math.ceil(user.totalPlayCount / 8);
@@ -140,12 +141,13 @@ export class leaderboardController {
                         if (scoreIndex > -1) {
                             let savedScore = this.curData.scores[scoreIndex];
                             if (score.score > savedScore.score) {
-                                messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex]);
+                                let prevUser = this.curData.users.find(x => x.userId == savedScore.userId);
+                                messageCache.push(await messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex], prevUser));
                                 this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
                                 // scoresToUpdate.push({ 'userId': user.userId, ...score });
                             }
                         } else {
-                            messageController.firstMessage(user, score, this.feedChannel);
+                            messageCache.push(await messageController.firstMessage(user, score, this.feedChannel));
                             this.curData.scores.push({ 'userId': user.userId, ...score });
                             // scoresToUpdate.push({ 'userId': user.userId, ...score });
                         }
@@ -168,6 +170,9 @@ export class leaderboardController {
                 user.latestScore = score;
             }
         }
+        for (const msg of messageCache) {
+            this.feedChannel.send(msg);
+        }
         console.info('Update Complete');
     }
 
@@ -183,7 +188,7 @@ export class leaderboardController {
 
     private async ssRequest(url: string): Promise<any> {
         let res = await fetch(url);
-        if (parseInt(res.headers.get('x-ratelimit-remaining')) < 3) {
+        if (parseInt(res.headers.get('x-ratelimit-remaining')) < 30) {
             let d1 = new Date(parseInt(res.headers.get('x-ratelimit-reset')) * 1000);
             let d2 = new Date();
             // console.log(`Waiting ${(d1.getTime() - (new Date()).getTime()) / 1000} seconds...`);
