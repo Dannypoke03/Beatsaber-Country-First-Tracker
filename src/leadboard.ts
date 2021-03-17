@@ -37,7 +37,7 @@ export class leaderboardController {
         this.updateSaved();
         setInterval(() => {
             this.updateScores();
-        }, 3600 * 1000)
+        }, 5400 * 1000)
         console.info('Init done!');
     }
 
@@ -109,7 +109,6 @@ export class leaderboardController {
                                 user.latestScore = score;
                             }
                         } else {
-                            // user.scores.push(score);
                             user.latestScore = score;
                         }
                     }
@@ -161,7 +160,6 @@ export class leaderboardController {
         }
         for (const score of scoresToUpdate) {
             let user = this.curData.users.find(x => x.userId === score.userId);
-            // let usrScoreIndex = user.scores.findIndex(x => x.leaderboardId == score.leaderboardId);
             if (user.latestScore) {
                 if ((new Date(score.timeSet)).getTime() > (new Date(user.latestScore.timeSet)).getTime()) {
                     user.latestScore = score;
@@ -178,20 +176,14 @@ export class leaderboardController {
 
     private getMostRecentScore(userId: string): Date {
         let user = this.curData.users.find(x => x.userId == userId);
-
-        // user.latestScore?.sort((a, b) => {
-        //     return (new Date(b.timeSet)).getTime() - (new Date(a.timeSet)).getTime();
-        // })
-
         return new Date(user.latestScore?.timeSet);
     }
 
     private async ssRequest(url: string): Promise<any> {
         let res = await fetch(url);
-        if (parseInt(res.headers.get('x-ratelimit-remaining')) < 30) {
+        if (parseInt(res.headers.get('x-ratelimit-remaining')) < 20) {
             let d1 = new Date(parseInt(res.headers.get('x-ratelimit-reset')) * 1000);
             let d2 = new Date();
-            // console.log(`Waiting ${(d1.getTime() - (new Date()).getTime()) / 1000} seconds...`);
             await this.delay(d1.getTime() - d2.getTime());
         }
         return await res.json();
@@ -216,7 +208,7 @@ export class leaderboardController {
                 let scores;
                 let usrIndex = this.curData.users.findIndex(x => x.userId == userId);
                 if (usrIndex > -1) {
-                    scores = this.curData.users[usrIndex].latestScore ?? undefined;
+                    scores = this.curData.users[usrIndex].latestScore;
                 }
                 users.push({
                     userId: user.playerInfo.playerId,
@@ -225,7 +217,6 @@ export class leaderboardController {
                     ssData: user
                 });
             } catch (error) {
-                // console.error(error);
                 console.error('failed to get ' + userId);
                 i--;
             }
