@@ -14,7 +14,6 @@ let leaderboard: leaderboardController;
 
 async function onMessage(message: Message) {
     if (!message.content.startsWith(prefix)) return;
-    // let command = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
     const args = message.content.slice(prefix.length).trim().split(' ');
     const command = args.shift().toLowerCase();
 
@@ -24,6 +23,12 @@ async function onMessage(message: Message) {
                 message.channel.send('Updating, this may take a while');
                 await leaderboard.updateScores();
                 message.channel.send('User Update complete');
+            }
+            break;
+        case 'pr':
+            if (message.member.roles.cache.find(x => x.id == config.staffRoleId)) {
+                message.delete();
+                leaderboard.progressReport(message.channel);
             }
             break;
         case 'fl':

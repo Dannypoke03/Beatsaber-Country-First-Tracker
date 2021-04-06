@@ -247,6 +247,10 @@ export class leaderboardController {
         messageController.accLeaderboardMessage(this.curData.users, channel);
     }
 
+    async progressReport(channel) {
+        messageController.progressReportMessage(this.curData.users, channel);
+    }
+
     async snipeUser(userId: string, channel) {
         let user = this.curData.users.find(x => x.userId == userId);
         if (!user) return channel.send('Could not generate playlist for this user');

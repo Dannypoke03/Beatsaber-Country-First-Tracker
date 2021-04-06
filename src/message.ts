@@ -78,6 +78,38 @@ export class messageController {
         channel.send(`\`\`\`${table.toString()}\`\`\``);
     }
 
+    static async progressReportMessage(data: user[], channel) {
+        data.sort((a, b) => {
+            return b.ssData.playerInfo.pp - a.ssData.playerInfo.pp;
+        })
+        var table = new AsciiTable('Progress Report');
+        table
+            .setHeading('Rank', 'Name', 'PP', 'Global');
+        let msg: string[] = [];
+        for (let i = 0; i < data.length && i < 100; i++) {
+            const user = data[i];
+            table
+                .addRow(`#${i + 1}`, user.ssData.playerInfo.playerName, user.ssData.playerInfo.pp.toFixed(2), `#${user.ssData.playerInfo.rank}`);
+            if ((i + 1) % 25 == 0) {
+                if (msg.length > 0) {
+                    msg.push(table.toString().substring(msg[msg.length - 1].length));
+                } else {
+                    msg.push(table.toString());
+                }
+            }
+        }
+        let rows: string[] = table.toString().split('\n');
+        for (let i = 0; i < 4; i++) {
+            let toSend = "";
+            if (i == 0) {
+                toSend = rows.filter((x, j) => j - 5 <= 25).join("\n");
+            } else {
+                toSend = rows.filter((x, j) => (j - 5 < (i * 25) + 25) && (j - 5 >= i * 25)).join("\n");
+            }
+            channel.send(`\`\`\`${toSend}\`\`\``);
+        }
+    }
+
     static snipeMessage(data, userName: string, channel) {
         let buffer = Buffer.from(JSON.stringify(data));
         const file = new Discord.MessageAttachment(buffer, `${userName}-firsts.bplist`);
