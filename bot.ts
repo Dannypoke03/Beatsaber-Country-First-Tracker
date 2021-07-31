@@ -34,6 +34,9 @@ async function onMessage(message: Message) {
         case 'fl':
             messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
             break;
+        case 'test':
+            leaderboard.test();
+            break;
         case 'snipe':
             if (!args.length) {
                 return message.channel.send(`You didn't provide a userId, ${message.author}!`);

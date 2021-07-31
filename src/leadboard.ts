@@ -4,6 +4,7 @@ import cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import { messageController } from "./message";
 import { MessageEmbed } from "discord.js";
+import { sheetUpdater } from "./sheetUpdater";
 
 export class leaderboardController {
 
@@ -172,6 +173,11 @@ export class leaderboardController {
             this.feedChannel.send(msg);
         }
         console.info('Update Complete');
+        sheetUpdater.upateSheet(this.curData);
+    }
+
+    test() {
+        sheetUpdater.upateSheet(this.curData);
     }
 
     private getMostRecentScore(userId: string): Date {
