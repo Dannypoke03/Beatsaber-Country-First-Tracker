@@ -5,6 +5,12 @@ export interface config {
     countries: string[];
     numPlayers: number;
     staffRoleId: string;
+    sheet: {
+        sheetId: string;
+        mainSheetIndex: number;
+        dataSheetIndex: number;
+    }
+
 }
 
 export interface savedData {

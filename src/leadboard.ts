@@ -28,17 +28,17 @@ export class leaderboardController {
             this.curData = JSON.parse(data);
         });
         // update players
-        // await this.savePlayers();
+        await this.savePlayers();
         console.info('Updated users');
 
         // update Scores
-        // if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
+        if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
 
         // await this.updateScores();
-        // this.updateSaved();
-        // setInterval(() => {
-        //     this.updateScores();
-        // }, 5400 * 1000)
+        this.updateSaved();
+        setInterval(() => {
+            this.updateScores();
+        }, 5400 * 1000)
         console.info('Init done!');
     }
 
@@ -150,12 +150,10 @@ export class leaderboardController {
                                 let prevUser = this.curData.users.find(x => x.userId == savedScore.userId);
                                 messageCache.push(await messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex], prevUser));
                                 this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
-                                // scoresToUpdate.push({ 'userId': user.userId, ...score });
                             }
                         } else {
                             messageCache.push(await messageController.firstMessage(user, score, this.feedChannel));
                             this.curData.scores.push({ 'userId': user.userId, ...score });
-                            // scoresToUpdate.push({ 'userId': user.userId, ...score });
                         }
                     }
                 } catch (error) {
@@ -180,11 +178,11 @@ export class leaderboardController {
             this.feedChannel.send(msg);
         }
         console.info('Update Complete');
-        sheetUpdater.upateSheet(this.curData);
+        sheetUpdater.upateSheet(this.curData, this.config);
     }
 
     async updateSheet() {
-        await sheetUpdater.upateSheet(this.curData);
+        await sheetUpdater.upateSheet(this.curData, this.config);
     }
 
     private getMostRecentScore(userId: string): Date {
@@ -234,7 +232,6 @@ export class leaderboardController {
                 i--;
             }
         }
-        // console.log(users);
         this.curData.users = users;
         this.updateSaved();
         console.info('Users updated');
@@ -252,7 +249,6 @@ export class leaderboardController {
                 usersCount.push({ user: user, count: 1 });
             }
         }
-        // console.log(usersCount);
         return usersCount;
     }
 
