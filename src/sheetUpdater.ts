@@ -23,7 +23,7 @@ export class sheetUpdater {
             for (const user of data.users) {
                 sheetUsers.push([
                     `=HYPERLINK("https://scoresaber.com/u/${user.userId}","${user.ssData.playerInfo.playerName}")`,
-                    (user.ssData.scoreStats.averageRankedAccuracy / 100).toFixed(2),
+                    (user.ssData.scoreStats.averageRankedAccuracy / 100).toFixed(4),
                     user.ssData.playerInfo.pp,
                     user.ssData.playerInfo.rank,
                     user.ssData.scoreStats.totalPlayCount,
