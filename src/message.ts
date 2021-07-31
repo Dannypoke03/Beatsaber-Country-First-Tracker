@@ -102,7 +102,7 @@ export class messageController {
         for (let i = 0; i < 4; i++) {
             let toSend = "";
             if (i == 0) {
-                toSend = rows.filter((x, j) => j - 5 <= 25).join("\n");
+                toSend = rows.filter((x, j) => j - 5 < 25).join("\n");
             } else {
                 toSend = rows.filter((x, j) => (j - 5 < (i * 25) + 25) && (j - 5 >= i * 25)).join("\n");
             }
