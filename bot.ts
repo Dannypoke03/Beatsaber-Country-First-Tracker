@@ -34,8 +34,12 @@ async function onMessage(message: Message) {
         case 'fl':
             messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
             break;
-        case 'test':
-            leaderboard.test();
+        case 'sheet':
+            if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
+                message.channel.send('Updating Spreadsheet...');
+                await leaderboard.updateSheet();
+                message.channel.send('Spreadsheet Updated');
+            }
             break;
         case 'snipe':
             if (!args.length) {

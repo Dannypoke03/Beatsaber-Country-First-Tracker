@@ -28,17 +28,17 @@ export class leaderboardController {
             this.curData = JSON.parse(data);
         });
         // update players
-        await this.savePlayers();
+        // await this.savePlayers();
         console.info('Updated users');
 
         // update Scores
-        if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
+        // if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
 
-        await this.updateScores();
-        this.updateSaved();
-        setInterval(() => {
-            this.updateScores();
-        }, 5400 * 1000)
+        // await this.updateScores();
+        // this.updateSaved();
+        // setInterval(() => {
+        //     this.updateScores();
+        // }, 5400 * 1000)
         console.info('Init done!');
     }
 
@@ -183,8 +183,8 @@ export class leaderboardController {
         sheetUpdater.upateSheet(this.curData);
     }
 
-    test() {
-        sheetUpdater.upateSheet(this.curData);
+    async updateSheet() {
+        await sheetUpdater.upateSheet(this.curData);
     }
 
     private getMostRecentScore(userId: string): Date {

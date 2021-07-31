@@ -25,11 +25,11 @@ export class sheetUpdater {
                 user.ssData.playerInfo.pp,
                 user.ssData.playerInfo.rank,
                 user.ssData.scoreStats.totalPlayCount,
-                user.topScore.pp,
-                `${user.topScore.songName} - ${user.topScore.songAuthorName}`,
+                user.topScore?.pp,
+                `${user.topScore?.songName} - ${user.topScore?.songAuthorName}`,
                 (i + 1),
                 user.ssData.scoreStats.totalScore,
-                user.topScore.difficultyRaw.split("_")[1]
+                user.topScore?.difficultyRaw.split("_")[1]
             ]);
             i++;
         }
