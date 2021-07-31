@@ -17,6 +17,7 @@ export class sheetUpdater {
         const sheet = doc.sheetsByIndex[6];
 
         let sheetUsers = [];
+        let i = 0;
         for (const user of data.users) {
             sheetUsers.push([
                 `=HYPERLINK("https://scoresaber.com/u/${user.userId}","${user.ssData.playerInfo.playerName}")`,
@@ -24,13 +25,13 @@ export class sheetUpdater {
                 user.ssData.playerInfo.pp,
                 user.ssData.playerInfo.rank,
                 user.ssData.scoreStats.totalPlayCount,
-                // topScores.scores[0].pp,
-                // `${topScores.scores[0].songName} - ${topScores.scores[0].songAuthorName}`,
-                // (i + 1),
+                user.topScore.pp,
+                `${user.topScore.songName} - ${user.topScore.songAuthorName}`,
+                (i + 1),
                 user.ssData.scoreStats.totalScore,
-                // topScores.scores[0].difficultyRaw.split("_")[1]
+                user.topScore.difficultyRaw.split("_")[1]
             ]);
-
+            i++;
         }
 
         console.log("Updating spreadsheet...");
@@ -44,6 +45,7 @@ export class sheetUpdater {
         // let now = new Date();
         // a1.value = `Last Updated: ${now.toString()}`;
         // await mainSheet.saveUpdatedCells();
+        console.log("Spreadsheet Updadted");
     }
 
 }

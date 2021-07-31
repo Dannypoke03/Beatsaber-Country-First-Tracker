@@ -17,6 +17,7 @@ export interface user {
     oceRank?: number;
     totalPlayCount: number;
     latestScore?: Score;
+    topScore?: Score;
     ssData: ssPlayer;
 }
 

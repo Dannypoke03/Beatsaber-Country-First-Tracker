@@ -96,6 +96,9 @@ export class leaderboardController {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
                     for (const score of scorePage.scores) {
                         if (score.pp == 0) break userLoop;
+                        if (score.pp > (user.topScore?.pp ?? 0)) {
+                            user.topScore = score;
+                        }
                         let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
                         if (scoreIndex > -1) {
                             let savedScore = this.curData.scores[scoreIndex];
@@ -136,6 +139,9 @@ export class leaderboardController {
                     for (const score of scorePage.scores) {
                         scoresToUpdate.push({ 'userId': user.userId, ...score });
                         if (score.pp == 0) continue;
+                        if (score.pp > (user.topScore?.pp ?? 0)) {
+                            user.topScore = score;
+                        }
                         if ((new Date(score.timeSet)).getTime() <= this.getMostRecentScore(user.userId).getTime()) break updateUserLoop;
                         let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
                         if (scoreIndex > -1) {
@@ -153,6 +159,7 @@ export class leaderboardController {
                         }
                     }
                 } catch (error) {
+                    console.error(error);
                     console.error(`Failed getting page ${i}`);
                     i--;
                 }
