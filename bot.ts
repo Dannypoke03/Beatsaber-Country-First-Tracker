@@ -34,11 +34,17 @@ async function onMessage(message: Message) {
         case 'fl':
             messageController.firstLeaderboardMessage(await leaderboard.firstLeadboard(), message.channel);
             break;
-        case 'sheet':
+        case 'sheet-update':
             if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
                 message.channel.send('Updating Spreadsheet...');
                 await leaderboard.updateSheet();
                 message.channel.send('Spreadsheet Updated');
+            }
+            break;
+        case 'update-top':
+            if (message.member.roles.cache.find(x => x.id == config.staffRoleId) && leaderboard) {
+                message.channel.send('Updating Top Scores...');
+                await leaderboard.updateTopScores();
             }
             break;
         case 'snipe':

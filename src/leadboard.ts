@@ -34,7 +34,7 @@ export class leaderboardController {
         // update Scores
         if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
 
-        // await this.updateScores();
+        await this.updateScores();
         this.updateSaved();
         setInterval(() => {
             this.updateScores();
@@ -95,10 +95,11 @@ export class leaderboardController {
                 try {
                     let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
                     for (const score of scorePage.scores) {
-                        if (score.pp == 0) break userLoop;
                         if (score.pp > (user.topScore?.pp ?? 0)) {
                             user.topScore = score;
+                            this.updateSaved();
                         }
+                        if (score.pp == 0) break userLoop;
                         let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
                         if (scoreIndex > -1) {
                             let savedScore = this.curData.scores[scoreIndex];
@@ -121,6 +122,26 @@ export class leaderboardController {
                     i--;
                 }
                 if (i % 10 == 0) this.updateSaved();
+            }
+        }
+    }
+
+    async updateTopScores() {
+        for (let i = 0; i < this.curData.users.length; i++) {
+            const user = this.curData.users[i];
+            // if (user.latestScore) continue;
+            console.log(`Getting user ${user.userId}... (${i + 1}/${this.curData.users.length})`);
+            try {
+                let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/1`);
+                for (const score of scorePage.scores) {
+                    if (score.pp > (user.topScore?.pp ?? 0)) {
+                        user.topScore = score;
+                        this.updateSaved();
+                    }
+                    if (score.pp == 0) break;
+                }
+            } catch (error) {
+                console.log(`Failed getting page`);
             }
         }
     }
