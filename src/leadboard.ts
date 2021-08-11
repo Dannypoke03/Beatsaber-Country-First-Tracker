@@ -74,6 +74,7 @@ export class leaderboardController {
                     userId: user.playerInfo.playerId,
                     totalPlayCount: user.scoreStats.totalPlayCount,
                     latestScore: scores,
+                    topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
                     ssData: user
                 });
             } catch (error) {
@@ -129,7 +130,6 @@ export class leaderboardController {
     async updateTopScores() {
         for (let i = 0; i < this.curData.users.length; i++) {
             const user = this.curData.users[i];
-            // if (user.latestScore) continue;
             console.log(`Getting user ${user.userId}... (${i + 1}/${this.curData.users.length})`);
             try {
                 let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/1`);
@@ -246,6 +246,7 @@ export class leaderboardController {
                     userId: user.playerInfo.playerId,
                     totalPlayCount: user.scoreStats.totalPlayCount,
                     latestScore: scores,
+                    topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
                     ssData: user
                 });
             } catch (error) {
