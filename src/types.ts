@@ -9,6 +9,7 @@ export interface config {
         sheetId: string;
         mainSheetIndex: number;
         dataSheetIndex: number;
+        firstSheetIndex: number;
     }
 
 }
@@ -109,4 +110,29 @@ export interface ssScore {
 export interface firstLeadboard {
     user: user;
     count: number;
+}
+
+export interface baliRanked {
+    uid: number;
+    id: string;
+    name: string;
+    artist: string;
+    mapper: string;
+    bpm: number;
+    diff: string;
+    scores: number;
+    stars: number;
+    pp: number;
+    beatSaverKey: string;
+    downloads: number;
+    upvotes: number;
+    downvotes: number;
+    rating: number;
+    download: string;
+    duration: number;
+    noteCount: number;
+    njs: number;
+    _id: string;
+    recentScores: number;
+    durationSeconds: number;
 }
