@@ -49,6 +49,7 @@ export class sheetUpdater {
             for (const score of data.scores) {
                 let user = data.users.find(x => x.userId === score.userId);
                 let song = ranked.list.find(x => x.uid === score.leaderboardId);
+                if (!song) continue;
                 sheetInfo.push([
                     user ? `=HYPERLINK("https://scoresaber.com/u/${user.userId}","${user.ssData.playerInfo.playerName}")` : `=HYPERLINK("https://scoresaber.com/u/${score.userId}","${score.userId}")`,
                     `${score.songName} - ${score.songAuthorName}`,
