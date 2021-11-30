@@ -24,10 +24,7 @@ export class leaderboardController {
         this.feedChannel = (this.client.channels.cache as any).get(BotConfig.config.channelId);
         await this.userUpdate();
         await this.initialScoreSync();
-        await this.newScoresSync();
-        await this.scoreCleanUp();
-        await sheetUpdater.upateSheet();
-        // await this.updateLoop();
+        await this.updateLoop();
     }
 
     private async updateLoop() {
