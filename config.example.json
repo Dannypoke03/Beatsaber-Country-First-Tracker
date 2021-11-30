@@ -1,0 +1,17 @@
+{
+    "token": "",
+    "serverId": "",
+    "channelId": "",
+    "countries": [
+        ""
+    ],
+    "numPlayers": 0,
+    "staffRoleId": "",
+    "sheet": {
+        "sheetId": "",
+        "mainSheetIndex": 0,
+        "dataSheetIndex": 0,
+        "firstSheetIndex": 0
+    },
+    "prefix": "~"
+}

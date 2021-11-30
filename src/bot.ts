@@ -1,9 +1,10 @@
-import { Client, Message, TextChannel, Guild, Role, GuildMember, Collection, MessageEmbed, DMChannel, NewsChannel, GuildChannel } from 'discord.js';
-import { config, savedData, Score, ssPlayer, ssScore, user } from './src/types';
-import { leaderboardController } from './src/leadboard';
-import { messageController } from './src/message';
-import { debugLogger } from './src/debug.controller';
-const fs = require('fs').promises;
+import { Client, Message } from 'discord.js';
+import { config } from './types';
+import { leaderboardController } from './leadboard';
+import { messageController } from './message';
+import { debugLogger } from './debug.controller';
+import { BotConfig } from './controllers/config';
+import { commandHandler } from './controllers/commandHandler';
 
 const prefix = '~';
 
@@ -69,21 +70,21 @@ const client = new Client();
 
 async function onReady() {
     console.info('Bot Ready');
-    leaderboard = new leaderboardController('./data.json', config, client);
-    leaderboard.init();
+    // leaderboard = new leaderboardController('./data.json', config, client);
+    // leaderboard.init();
 }
 
 client.once('ready', onReady);
-client.on('message', onMessage);
+client.on('message', commandHandler.handle);
 
 async function setConfig() {
-    let data = await fs.readFile('./config.json');
-    config = JSON.parse(data);
+    await BotConfig.loadConfig();
+    await BotConfig.loadCommands();
 }
 
 async function init() {
     await setConfig();
-    await client.login(config.token || 'NO_TOKEN_PROVIDED').then(async () => {
+    await client.login(BotConfig.config.token || 'NO_TOKEN_PROVIDED').then(async () => {
         console.info('[Init] Connected to discord.');
     });
 }
