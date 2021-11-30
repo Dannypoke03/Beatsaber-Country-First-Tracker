@@ -14,7 +14,7 @@ export default class Help implements ICommand {
         let out = "**Avaliable Commands**\n";
         for (const command of BotConfig.commands) {
             if (command.canRun(msg, args)) {
-                out += `\`${BotConfig.config.prefix}${command.command[0]} ${command.requiredArgs ? `<${command.requiredArgs.join('| ')}>` : ''}\` -> ${command.description}\n`;
+                out += `\`${BotConfig.config.prefix}${command.command[0]}${command.requiredArgs ? ` <${command.requiredArgs.join('| ')}>` : ''}\` -> ${command.description}\n`;
             }
         }
         msg.channel.send(out);
