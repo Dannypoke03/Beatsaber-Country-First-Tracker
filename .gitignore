@@ -1,4 +1,10 @@
+.idea/
+.vscode/
 node_modules/
 config.json
 data.json
 creds.json
+ormconfig.json
+build/
+tmp/
+temp/

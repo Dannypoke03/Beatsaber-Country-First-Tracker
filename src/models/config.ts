@@ -3,6 +3,7 @@ export interface IConfig {
     serverId: string;
     channelId: string;
     countries: string[];
+    individualUsers: string[];
     numPlayers: number;
     staffRoleId: string;
     sheet: ISheetOptions;

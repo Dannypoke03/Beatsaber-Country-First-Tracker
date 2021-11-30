@@ -2,7 +2,7 @@ import { config, firstLeadboard, savedData, score, ssPlayer, ssScore, user } fro
 const fs = require('fs');
 import cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import { messageController } from "./message";
+import { messageController } from "./controllers/message";
 import { MessageEmbed } from "discord.js";
 import { sheetUpdater } from "./sheetUpdater";
 
@@ -22,242 +22,242 @@ export class leaderboardController {
         this.feedChannel = guild.channels.cache.get(config.channelId);
     }
 
-    async init() {
-        await fs.readFile(this.dataPath, (err, data) => {
-            if (err) throw err;
-            this.curData = JSON.parse(data);
-        });
-        // update players
-        await this.savePlayers();
-        console.info('Updated users');
+    // async init() {
+    //     await fs.readFile(this.dataPath, (err, data) => {
+    //         if (err) throw err;
+    //         this.curData = JSON.parse(data);
+    //     });
+    //     // update players
+    //     await this.savePlayers();
+    //     console.info('Updated users');
 
-        // update Scores
-        if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
+    //     // update Scores
+    //     if (this.curData.users.some(x => !x.latestScore)) await this.initialScores();
 
-        await this.updateScores();
-        this.updateSaved();
-        setInterval(() => {
-            this.updateScores();
-        }, 5400 * 1000)
-        console.info('Init done!');
-    }
+    //     await this.updateScores();
+    //     this.updateSaved();
+    //     setInterval(() => {
+    //         this.updateScores();
+    //     }, 5400 * 1000)
+    //     console.info('Init done!');
+    // }
 
-    private async getPlayers(): Promise<string[]> {
-        let playersToGet = this.config.numPlayers;
-        let pages = Math.ceil(playersToGet / 50);
-        let userIds = [];
-        let countriesString = this.config.countries.join(',');
-        for (let i = 1; i <= pages; i++) {
-            let res = await fetch(`https://scoresaber.com/global/${i}?country=${countriesString}`);
-            let html = await res.text();
-            let $ = cheerio.load(html);
-            $('table > tbody > tr > td.player > a').each((i, elem) => {
-                if (userIds.length < playersToGet) userIds.push($(elem).attr('href').replace('/u/', ''));
-            });
-        }
-        return userIds;
-    }
+    // private async getPlayers(): Promise<string[]> {
+    //     let playersToGet = this.config.numPlayers;
+    //     let pages = Math.ceil(playersToGet / 50);
+    //     let userIds = [];
+    //     let countriesString = this.config.countries.join(',');
+    //     for (let i = 1; i <= pages; i++) {
+    //         let res = await fetch(`https://scoresaber.com/global/${i}?country=${countriesString}`);
+    //         let html = await res.text();
+    //         let $ = cheerio.load(html);
+    //         $('table > tbody > tr > td.player > a').each((i, elem) => {
+    //             if (userIds.length < playersToGet) userIds.push($(elem).attr('href').replace('/u/', ''));
+    //         });
+    //     }
+    //     return userIds;
+    // }
 
-    async updateSavedPlayers() {
-        let userIds = await this.getPlayers();
-        let users: user[] = [];
-        for (let i = 0; i < userIds.length; i++) {
-            const userId = userIds[i];
-            try {
-                let user: ssPlayer = await this.ssRequest(`https://new.scoresaber.com/api/player/${userId}/full`);
-                let scores;
-                let usrIndex = this.curData.users.findIndex(x => x.userId == userId);
-                if (usrIndex > -1) {
-                    scores = this.curData.users[usrIndex].latestScore ?? undefined;
-                }
-                users.push({
-                    userId: user.playerInfo.playerId,
-                    totalPlayCount: user.scoreStats.totalPlayCount,
-                    latestScore: scores,
-                    topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
-                    ssData: user
-                });
-            } catch (error) {
-                console.error('failed to get ' + userId);
-                i--;
-            }
-        }
-        this.curData.users = users;
-        this.updateSaved();
-    }
+    // async updateSavedPlayers() {
+    //     let userIds = await this.getPlayers();
+    //     let users: user[] = [];
+    //     for (let i = 0; i < userIds.length; i++) {
+    //         const userId = userIds[i];
+    //         try {
+    //             let user: ssPlayer = await this.ssRequest(`https://new.scoresaber.com/api/player/${userId}/full`);
+    //             let scores;
+    //             let usrIndex = this.curData.users.findIndex(x => x.userId == userId);
+    //             if (usrIndex > -1) {
+    //                 scores = this.curData.users[usrIndex].latestScore ?? undefined;
+    //             }
+    //             users.push({
+    //                 userId: user.playerInfo.playerId,
+    //                 totalPlayCount: user.scoreStats.totalPlayCount,
+    //                 latestScore: scores,
+    //                 topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
+    //                 ssData: user
+    //             });
+    //         } catch (error) {
+    //             console.error('failed to get ' + userId);
+    //             i--;
+    //         }
+    //     }
+    //     this.curData.users = users;
+    //     this.updateSaved();
+    // }
 
-    private async initialScores() {
-        for (const user of this.curData.users) {
-            if (user.latestScore) continue;
-            let pages = Math.ceil(user.totalPlayCount / 8);
-            console.log(`Getting user ${user.userId}...`);
-            userLoop:
-            for (let i = 1; i <= pages; i++) {
-                try {
-                    let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
-                    for (const score of scorePage.scores) {
-                        if (score.pp > (user.topScore?.pp ?? 0)) {
-                            user.topScore = score;
-                            this.updateSaved();
-                        }
-                        if (score.pp == 0) break userLoop;
-                        let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
-                        if (scoreIndex > -1) {
-                            let savedScore = this.curData.scores[scoreIndex];
-                            if (score.score > savedScore.score) {
-                                this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
-                            }
-                        } else {
-                            this.curData.scores.push({ 'userId': user.userId, ...score });
-                        }
-                        if (user.latestScore) {
-                            if ((new Date(score.timeSet)).getTime() > (new Date(user.latestScore.timeSet)).getTime()) {
-                                user.latestScore = score;
-                            }
-                        } else {
-                            user.latestScore = score;
-                        }
-                    }
-                } catch (error) {
-                    console.log(`Failed getting page ${i}`);
-                    i--;
-                }
-                if (i % 10 == 0) this.updateSaved();
-            }
-        }
-    }
+    // private async initialScores() {
+    //     for (const user of this.curData.users) {
+    //         if (user.latestScore) continue;
+    //         let pages = Math.ceil(user.totalPlayCount / 8);
+    //         console.log(`Getting user ${user.userId}...`);
+    //         userLoop:
+    //         for (let i = 1; i <= pages; i++) {
+    //             try {
+    //                 let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/${i}`);
+    //                 for (const score of scorePage.scores) {
+    //                     if (score.pp > (user.topScore?.pp ?? 0)) {
+    //                         user.topScore = score;
+    //                         this.updateSaved();
+    //                     }
+    //                     if (score.pp == 0) break userLoop;
+    //                     let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
+    //                     if (scoreIndex > -1) {
+    //                         let savedScore = this.curData.scores[scoreIndex];
+    //                         if (score.score > savedScore.score) {
+    //                             this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
+    //                         }
+    //                     } else {
+    //                         this.curData.scores.push({ 'userId': user.userId, ...score });
+    //                     }
+    //                     if (user.latestScore) {
+    //                         if ((new Date(score.timeSet)).getTime() > (new Date(user.latestScore.timeSet)).getTime()) {
+    //                             user.latestScore = score;
+    //                         }
+    //                     } else {
+    //                         user.latestScore = score;
+    //                     }
+    //                 }
+    //             } catch (error) {
+    //                 console.log(`Failed getting page ${i}`);
+    //                 i--;
+    //             }
+    //             if (i % 10 == 0) this.updateSaved();
+    //         }
+    //     }
+    // }
 
-    async updateTopScores() {
-        for (let i = 0; i < this.curData.users.length; i++) {
-            const user = this.curData.users[i];
-            console.log(`Getting user ${user.userId}... (${i + 1}/${this.curData.users.length})`);
-            try {
-                let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/1`);
-                for (const score of scorePage.scores) {
-                    if (score.pp > (user.topScore?.pp ?? 0)) {
-                        user.topScore = score;
-                        this.updateSaved();
-                    }
-                    if (score.pp == 0) break;
-                }
-            } catch (error) {
-                console.log(`Failed getting page`);
-            }
-        }
-    }
+    // async updateTopScores() {
+    //     for (let i = 0; i < this.curData.users.length; i++) {
+    //         const user = this.curData.users[i];
+    //         console.log(`Getting user ${user.userId}... (${i + 1}/${this.curData.users.length})`);
+    //         try {
+    //             let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/top/1`);
+    //             for (const score of scorePage.scores) {
+    //                 if (score.pp > (user.topScore?.pp ?? 0)) {
+    //                     user.topScore = score;
+    //                     this.updateSaved();
+    //                 }
+    //                 if (score.pp == 0) break;
+    //             }
+    //         } catch (error) {
+    //             console.log(`Failed getting page`);
+    //         }
+    //     }
+    // }
 
-    async updateScores() {
-        console.info('Updating User Scores');
-        let scoresToUpdate: score[] = [];
-        let messageCache: MessageEmbed[] = [];
-        await this.savePlayers();
-        for (const user of this.curData.users) {
-            let pages = Math.ceil(user.totalPlayCount / 8);
-            updateUserLoop:
-            for (let i = 1; i <= pages; i++) {
-                try {
-                    let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/recent/${i}`);
-                    for (const score of scorePage.scores) {
-                        scoresToUpdate.push({ 'userId': user.userId, ...score });
-                        if (score.pp == 0) continue;
-                        if (score.pp > (user.topScore?.pp ?? 0)) {
-                            user.topScore = score;
-                        }
-                        if ((new Date(score.timeSet)).getTime() <= this.getMostRecentScore(user.userId).getTime()) break updateUserLoop;
-                        let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
-                        if (scoreIndex > -1) {
-                            let savedScore = this.curData.scores[scoreIndex];
-                            if (score.score > savedScore.score) {
-                                let prevUser = this.curData.users.find(x => x.userId == savedScore.userId);
-                                messageCache.push(await messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex], prevUser));
-                                this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
-                            }
-                        } else {
-                            messageCache.push(await messageController.firstMessage(user, score, this.feedChannel));
-                            this.curData.scores.push({ 'userId': user.userId, ...score });
-                        }
-                    }
-                } catch (error) {
-                    console.error(error);
-                    console.error(`Failed getting page ${i}`);
-                    i--;
-                }
-                if (i % 10 == 0) this.updateSaved();
-            }
-        }
-        for (const score of scoresToUpdate) {
-            let user = this.curData.users.find(x => x.userId === score.userId);
-            if (user.latestScore) {
-                if ((new Date(score.timeSet)).getTime() > (new Date(user.latestScore.timeSet)).getTime()) {
-                    user.latestScore = score;
-                }
-            } else {
-                user.latestScore = score;
-            }
-        }
-        for (const msg of messageCache) {
-            this.feedChannel.send(msg);
-        }
-        console.info('Update Complete');
-        sheetUpdater.upateSheet(this.curData, this.config);
-    }
+    // async updateScores() {
+    //     console.info('Updating User Scores');
+    //     let scoresToUpdate: score[] = [];
+    //     let messageCache: MessageEmbed[] = [];
+    //     await this.savePlayers();
+    //     for (const user of this.curData.users) {
+    //         let pages = Math.ceil(user.totalPlayCount / 8);
+    //         updateUserLoop:
+    //         for (let i = 1; i <= pages; i++) {
+    //             try {
+    //                 let scorePage: ssScore = await this.ssRequest(`https://new.scoresaber.com/api/player/${user.userId}/scores/recent/${i}`);
+    //                 for (const score of scorePage.scores) {
+    //                     scoresToUpdate.push({ 'userId': user.userId, ...score });
+    //                     if (score.pp == 0) continue;
+    //                     if (score.pp > (user.topScore?.pp ?? 0)) {
+    //                         user.topScore = score;
+    //                     }
+    //                     if ((new Date(score.timeSet)).getTime() <= this.getMostRecentScore(user.userId).getTime()) break updateUserLoop;
+    //                     let scoreIndex = this.curData.scores.findIndex(x => x.leaderboardId == score.leaderboardId)
+    //                     if (scoreIndex > -1) {
+    //                         let savedScore = this.curData.scores[scoreIndex];
+    //                         if (score.score > savedScore.score) {
+    //                             let prevUser = this.curData.users.find(x => x.userId == savedScore.userId);
+    //                             messageCache.push(await messageController.firstMessage(user, score, this.feedChannel, this.curData.scores[scoreIndex], prevUser));
+    //                             this.curData.scores[scoreIndex] = { 'userId': user.userId, ...score };
+    //                         }
+    //                     } else {
+    //                         messageCache.push(await messageController.firstMessage(user, score, this.feedChannel));
+    //                         this.curData.scores.push({ 'userId': user.userId, ...score });
+    //                     }
+    //                 }
+    //             } catch (error) {
+    //                 console.error(error);
+    //                 console.error(`Failed getting page ${i}`);
+    //                 i--;
+    //             }
+    //             if (i % 10 == 0) this.updateSaved();
+    //         }
+    //     }
+    //     for (const score of scoresToUpdate) {
+    //         let user = this.curData.users.find(x => x.userId === score.userId);
+    //         if (user.latestScore) {
+    //             if ((new Date(score.timeSet)).getTime() > (new Date(user.latestScore.timeSet)).getTime()) {
+    //                 user.latestScore = score;
+    //             }
+    //         } else {
+    //             user.latestScore = score;
+    //         }
+    //     }
+    //     for (const msg of messageCache) {
+    //         this.feedChannel.send(msg);
+    //     }
+    //     console.info('Update Complete');
+    //     sheetUpdater.upateSheet(this.curData, this.config);
+    // }
 
-    async updateSheet() {
-        await sheetUpdater.upateSheet(this.curData, this.config);
-    }
+    // async updateSheet() {
+    //     await sheetUpdater.upateSheet(this.curData, this.config);
+    // }
 
-    private getMostRecentScore(userId: string): Date {
-        let user = this.curData.users.find(x => x.userId == userId);
-        return new Date(user.latestScore?.timeSet);
-    }
+    // private getMostRecentScore(userId: string): Date {
+    //     let user = this.curData.users.find(x => x.userId == userId);
+    //     return new Date(user.latestScore?.timeSet);
+    // }
 
-    private async ssRequest(url: string): Promise<any> {
-        let res = await fetch(url);
-        if (parseInt(res.headers.get('x-ratelimit-remaining')) < 20) {
-            let d1 = new Date(parseInt(res.headers.get('x-ratelimit-reset')) * 1000);
-            let d2 = new Date();
-            await this.delay(d1.getTime() - d2.getTime());
-        }
-        return await res.json();
-    }
+    // private async ssRequest(url: string): Promise<any> {
+    //     let res = await fetch(url);
+    //     if (parseInt(res.headers.get('x-ratelimit-remaining')) < 20) {
+    //         let d1 = new Date(parseInt(res.headers.get('x-ratelimit-reset')) * 1000);
+    //         let d2 = new Date();
+    //         await this.delay(d1.getTime() - d2.getTime());
+    //     }
+    //     return await res.json();
+    // }
 
-    private delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    // private delay(ms) {
+    //     return new Promise(resolve => setTimeout(resolve, ms));
+    // }
 
-    private updateSaved() {
-        fs.writeFileSync(this.dataPath, JSON.stringify(this.curData));
-    }
+    // private updateSaved() {
+    //     fs.writeFileSync(this.dataPath, JSON.stringify(this.curData));
+    // }
 
-    async savePlayers() {
-        console.info('Updating Users');
-        let userIds = await this.getPlayers();
-        let users: user[] = [];
-        for (let i = 0; i < userIds.length; i++) {
-            const userId = userIds[i];
-            try {
-                let user: ssPlayer = await this.ssRequest(`https://new.scoresaber.com/api/player/${userId}/full`);
-                let scores;
-                let usrIndex = this.curData.users.findIndex(x => x.userId == userId);
-                if (usrIndex > -1) {
-                    scores = this.curData.users[usrIndex].latestScore;
-                }
-                users.push({
-                    userId: user.playerInfo.playerId,
-                    totalPlayCount: user.scoreStats.totalPlayCount,
-                    latestScore: scores,
-                    topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
-                    ssData: user
-                });
-            } catch (error) {
-                console.error('failed to get ' + userId);
-                i--;
-            }
-        }
-        this.curData.users = users;
-        this.updateSaved();
-        console.info('Users updated');
-    }
+    // async savePlayers() {
+    //     console.info('Updating Users');
+    //     let userIds = await this.getPlayers();
+    //     let users: user[] = [];
+    //     for (let i = 0; i < userIds.length; i++) {
+    //         const userId = userIds[i];
+    //         try {
+    //             let user: ssPlayer = await this.ssRequest(`https://new.scoresaber.com/api/player/${userId}/full`);
+    //             let scores;
+    //             let usrIndex = this.curData.users.findIndex(x => x.userId == userId);
+    //             if (usrIndex > -1) {
+    //                 scores = this.curData.users[usrIndex].latestScore;
+    //             }
+    //             users.push({
+    //                 userId: user.playerInfo.playerId,
+    //                 totalPlayCount: user.scoreStats.totalPlayCount,
+    //                 latestScore: scores,
+    //                 topScore: this.curData.users.find(x => x.userId === userId)?.topScore ?? undefined,
+    //                 ssData: user
+    //             });
+    //         } catch (error) {
+    //             console.error('failed to get ' + userId);
+    //             i--;
+    //         }
+    //     }
+    //     this.curData.users = users;
+    //     this.updateSaved();
+    //     console.info('Users updated');
+    // }
 
     async firstLeadboard(): Promise<firstLeadboard[]> {
         let usersCount: firstLeadboard[] = [];

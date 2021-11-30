@@ -1,7 +1,8 @@
 import { MessageEmbed } from "discord.js";
-import { firstLeadboard, Score, user } from "./types";
+import { firstLeadboard, user } from "../types";
 var AsciiTable = require('ascii-table');
 import Discord from 'discord.js';
+import { Score } from "../entity/Score";
 
 const colours = {
     "ExpertPlus": "#8f48db",
@@ -13,27 +14,25 @@ const colours = {
 
 export class messageController {
 
-    static async firstMessage(user: user, score: Score, channel, oldScore?: Score, oldUser?: user): Promise<MessageEmbed> {
-        // let user = curData.users.find(x => x.userId == userId);
-        if (!user) return;
-        let colour = colours[score.difficultyRaw.split("_")[1]];
+    static async firstMessage(score: Score, oldScore?: Score): Promise<MessageEmbed> {
+        if (!score) return;
+        let colour = colours[score.leaderboard.difficulty.split("_")[1]];
         const embed = new MessageEmbed()
             .setColor(colour)
-            .setTitle(`**${user.ssData.playerInfo.playerName}** set a new **#1 OCE Score**`)
-            .setDescription(`[${user.ssData.playerInfo.playerName}'s Profile](https://scoresaber.com/u/${user.userId})`)
-            .setThumbnail(`https://scoresaber.com/imports/images/usr-avatars/${user.userId}.jpg`)
-            .addFields(
-                { name: `${score.songAuthorName} - ${score.songName}`, value: `**Rank:** #${score.rank}\n**PP:** ${score.pp.toFixed(2)}\n**Accuracy:** ${(score.score / score.maxScore * 100).toFixed(2)}%\n[Leadboard](https://scoresaber.com/leaderboard/${score.leaderboardId})` }
-            )
-            .setImage(`https://scoresaber.com/imports/images/songs/${score.songHash}.png`)
+            .setTitle(`**${score.user.playerName}** set a new **#1 OCE Score**`)
+            .setDescription(`[${score.user.playerName}'s Profile](https://scoresaber.com/u/${score.user.userId})`)
+            .setThumbnail(`https://scoresaber.com/imports/images/usr-avatars/${score.user.userId}.jpg`)
+            .addFields({
+                name: `${score.leaderboard.songAuthorName} - ${score.leaderboard.songName}`,
+                value: `**Rank:** #${score.rank}\n**PP:** ${score.pp.toFixed(2)}\n**Accuracy:** ${(score.modifiedScore / score.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}\n[Leadboard](https://scoresaber.com/leaderboard/${score.leaderboard.id})`
+            })
+            .setImage(score.leaderboard.coverImage)
             .setTimestamp(new Date(score.timeSet));
-        if (oldScore && oldUser) {
-            embed.addField('Previous Score', `**Set By:** ${oldUser.ssData.playerInfo.playerName} \n**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.score / oldScore.maxScore * 100).toFixed(2)}%\n[Leadboard](https://scoresaber.com/leaderboard/${oldScore.leaderboardId})`)
-        } else if (oldScore) {
-            embed.addField('Previous Score', `**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.score / oldScore.maxScore * 100).toFixed(2)}%\n[Leaderboard](https://scoresaber.com/leaderboard/${oldScore.leaderboardId})`)
+        if (oldScore) {
+            embed.addField('Previous Score', `**Set By:** ${oldScore.user.playerName} \n**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.baseScore / oldScore.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}`);
         }
         return embed;
-        channel.send(embed);
+        // channel.send(embed);
     }
 
     static async firstLeaderboardMessage(data: firstLeadboard[], channel) {
