@@ -30,7 +30,7 @@ export class leaderboardController {
     private async updateLoop() {
         await this.userUpdate();
         await this.newScoresSync();
-        await this.scoreCleanUp();
+        // await this.scoreCleanUp();
         await sheetUpdater.upateSheet();
         // rerun every hour
         setTimeout(() => this.updateLoop(), 1000 * 60 * 60);
@@ -173,6 +173,7 @@ export class leaderboardController {
                         let savedLeaderboard = await createQueryBuilder(Leaderboard, "leaderboard")
                             .leftJoinAndSelect("leaderboard.scores", "scores")
                             .leftJoin("leaderboard.scores", "scores2", "scores2.pp > scores.pp")
+                            .leftJoinAndSelect("scores.user", "user")
                             .where("leaderboard.id = :id AND scores2.id IS NULL", { id: score.leaderboard.id })
                             .getOne();
                         if (!savedLeaderboard) {
@@ -209,6 +210,7 @@ export class leaderboardController {
                 }
             }
         }
+        console.log(newScores);
         for (const scores of newScores) {
             this.feedChannel.send(await messageController.firstMessage(scores.newScore, scores.oldScore));
         }

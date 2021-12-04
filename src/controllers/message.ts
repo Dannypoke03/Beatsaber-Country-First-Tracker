@@ -29,7 +29,7 @@ export class messageController {
             .setImage(score.leaderboard.coverImage)
             .setTimestamp(new Date(score.timeSet));
         if (oldScore) {
-            embed.addField('Previous Score', `**Set By:** ${oldScore.user.playerName} \n**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.baseScore / oldScore.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}`);
+            embed.addField('Previous Score', `${oldScore.user ? `**Set By:** ${oldScore.user.playerName}\n` : ''}**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.baseScore / oldScore.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}`);
         }
         return embed;
         // channel.send(embed);
