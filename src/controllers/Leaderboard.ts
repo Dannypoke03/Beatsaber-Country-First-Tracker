@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Channel, Client, MessageEmbed } from "discord.js";
-import { createQueryBuilder, getConnection, QueryBuilder } from "typeorm";
+import { Client } from "discord.js";
+import { createQueryBuilder, getConnection } from "typeorm";
 import { Leaderboard } from "../entity/Leaderboard";
 import { Score } from "../entity/Score";
 import { User } from "../entity/User";
@@ -210,7 +210,6 @@ export class leaderboardController {
                 }
             }
         }
-        console.log(newScores);
         for (const scores of newScores) {
             this.feedChannel.send(await messageController.firstMessage(scores.newScore, scores.oldScore));
         }
