@@ -26,7 +26,8 @@ export class messageController {
                 name: `${score.leaderboard.songAuthorName} - ${score.leaderboard.songName}`,
                 value: `**Rank:** #${score.rank}\n**PP:** ${score.pp.toFixed(2)}\n**Accuracy:** ${(score.modifiedScore / score.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}\n[Leadboard](https://scoresaber.com/leaderboard/${score.leaderboard.id})`
             })
-            .setImage(score.leaderboard.coverImage);
+            .setImage(score.leaderboard.coverImage)
+            .setTimestamp(new Date(score.timeSet));
         if (oldScore) {
             embed.addField('Previous Score', `${oldScore.user ? `**Set By:** ${oldScore.user.playerName}\n` : ''}**Rank:** #${oldScore.rank}\n**PP:** ${oldScore.pp.toFixed(2)}\n**Accuracy:** ${(oldScore.baseScore / score.leaderboard.maxScore * 100).toFixed(2)}%\n${score.fullCombo ? "**Full Combo!**" : `**Mistakes:** ${score.badCuts + score.missedNotes}`}`);
         }

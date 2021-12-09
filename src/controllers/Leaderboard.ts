@@ -165,7 +165,7 @@ export class leaderboardController {
                     let skip = false;
                     for (const score of scores) {
                         if (!score.leaderboard.ranked) continue;
-                        if (new Date(score.score.timeSet) < new Date(user.scores[0].timeSet)) {
+                        if (user.scores[0] && new Date(score.score.timeSet) < new Date(user.scores[0].timeSet)) {
                             skip = true;
                             break;
                         }
