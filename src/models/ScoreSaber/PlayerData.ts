@@ -1,3 +1,4 @@
+import { Metadata } from "./Generic";
 import { LeaderboardInfo, Score } from "./LeaderboardData";
 
 export interface Player {
@@ -41,4 +42,22 @@ export interface ScoreStats {
 export interface Badge {
     description: string;
     image: string;
+}
+
+export interface PlayerScoreCollection {
+    playerScores: PlayerScore[];
+    metadata: Metadata;
+}
+export class PlayerCollection {
+    players: Player[];
+    metadata: Metadata;
+}
+
+export enum Role {
+    RTR = 'rtr',
+    CAT = 'cat',
+    RT = 'rt',
+    QAT = 'qat',
+    NAT = 'nat',
+    QATHead = 'qathead'
 }

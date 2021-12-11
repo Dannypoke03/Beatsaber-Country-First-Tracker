@@ -1,5 +1,5 @@
+import { Metadata } from "./Generic";
 import { LeaderboardPlayer } from "./PlayerData";
-
 
 export interface Leaderboard {
     leaderboardInfo: LeaderboardInfo;
@@ -14,7 +14,6 @@ export interface LeaderboardInfo {
     songAuthorName: string;
     levelAuthorName: string;
     difficulty: Difficulty;
-    difficultyRaw: string;
     maxScore: number;
     createdDate: Date;
     rankedDate: Date;
@@ -34,12 +33,19 @@ export interface LeaderboardInfo {
 
 export interface LeaderboardInfoCollection {
     leaderboards: LeaderboardInfo[];
-    totalCount: number;
+    metadata: Metadata;
+}
+
+export interface ScoreCollection {
+    scores: Score[];
+    metadata: Metadata;
 }
 
 export interface Difficulty {
     leaderboardId: number;
     difficulty: number;
+    gameMode: string;
+    difficultyRaw: string;
 }
 
 export interface Score {
@@ -58,13 +64,6 @@ export interface Score {
     fullCombo: boolean;
     hmd: number;
     timeSet: Date;
-}
-
-export interface Difficulty {
-    leaderboardId: number;
-    difficulty: number;
-    gameMode: string;
-    difficultyRaw: string;
 }
 
 export interface LeaderboardFilterOptions {
@@ -153,38 +152,4 @@ export function getNumberFromSortDirection(direction: SortDirection): number {
         }
     }
     return 0;
-}
-
-export function getDifficultyLabel(input: number): string | null {
-    switch (input) {
-        case 1:
-            return 'Easy';
-        case 3:
-            return 'Normal';
-        case 5:
-            return 'Hard';
-        case 7:
-            return 'Expert';
-        case 9:
-            return 'Expert+';
-    }
-    return null;
-}
-
-export function getDifficultyNumber(input: string): number | null {
-    switch (input) {
-        case 'Easy':
-            return 1;
-        case 'Normal':
-            return 3;
-        case 'Hard':
-            return 5;
-        case 'Expert':
-            return 7;
-        case 'ExpertPlus':
-        case 'Expert+':
-            return 9;
-        default:
-            return null;
-    }
 }

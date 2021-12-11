@@ -5,7 +5,7 @@ import { Leaderboard } from "../entity/Leaderboard";
 import { Score } from "../entity/Score";
 import { User } from "../entity/User";
 import { LeaderboardInfo, Score as SSScore } from "../models/ScoreSaber/LeaderboardData";
-import { Player, PlayerScore } from "../models/ScoreSaber/PlayerData";
+import { Player, PlayerCollection, PlayerScore, PlayerScoreCollection } from "../models/ScoreSaber/PlayerData";
 import { delay } from "../utils/helper";
 import { BotConfig } from "./config";
 import { messageController } from "./message";
@@ -49,7 +49,7 @@ export class leaderboardController {
                 let d2 = new Date();
                 await delay(d1.getTime() - d2.getTime());
             }
-            let users: Player[] = res.data;
+            let users: Player[] = (res.data as PlayerCollection).players;
             allPlayers = allPlayers.concat(users.filter((x, i) => i + allPlayers.length < playersToGet));
         }
         for (const userId of BotConfig.config.individualUsers) {
@@ -103,7 +103,7 @@ export class leaderboardController {
                         let d2 = new Date();
                         await delay(d1.getTime() - d2.getTime());
                     }
-                    let scores: PlayerScore[] = scoresReq.data;
+                    let scores: PlayerScore[] = (scoresReq.data as PlayerScoreCollection).playerScores;
                     let hasUnranked = false;
                     for (const score of scores) {
                         if (!score.leaderboard.ranked) {
@@ -161,7 +161,7 @@ export class leaderboardController {
                         let d2 = new Date();
                         await delay(d1.getTime() - d2.getTime());
                     }
-                    let scores: PlayerScore[] = scoresReq.data;
+                    let scores: PlayerScore[] = (scoresReq.data as PlayerScoreCollection).playerScores;
                     let skip = false;
                     for (const score of scores) {
                         if (!score.leaderboard.ranked) continue;
